@@ -31,6 +31,12 @@ input::placeholder {
     transition-duration: 100ms;
 }
 
+.kanjiBtn:focus {
+    background-color: var(--bgColor);
+    transform: none;
+    transition-duration: 100ms;
+}
+
 button {
     border: 1px solid #dcd;
     border-radius: 0.5rem;
