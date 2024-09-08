@@ -212,11 +212,15 @@ function App() {
                         <button
                             onClick={() => {
                                 for (const kj of kanjisToSelect) {
-                                    document
-                                        .querySelector<HTMLButtonElement>(
-                                            `#${kj}`
-                                        )
-                                        ?.click();
+                                    try {
+                                        document
+                                            .querySelector<HTMLButtonElement>(
+                                                `#${kj}`
+                                            )
+                                            ?.click();
+                                    } catch (e) {
+                                        continue;
+                                    }
                                 }
                             }}
                         >
