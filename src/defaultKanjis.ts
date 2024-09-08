@@ -55,26 +55,38 @@ const toKanji = (s: string, d: Omit<Kanji, "kanji">) => {
         .map<Kanji>((v) => ({ ...d, kanji: v }));
 };
 
-export const removeDuplicates = (k: Kanji[], overwrite = true) => {
+type KanjiOverrideStrategy = (p: Kanji, n: Kanji) => Kanji;
+
+export const removeDuplicates = (
+    k: Kanji[],
+    mergeStrategy: KanjiOverrideStrategy = (p) => p
+) => {
     const retArr = [] as Kanji[];
-    for (const { kanji, lvl, status, type } of k) {
-        const obj = retArr.find((z) => z.kanji === kanji);
+    for (const kanji of k) {
+        const obj = retArr.find((z) => z.kanji === kanji.kanji);
         if (obj) {
-            if (!overwrite) continue;
-            obj.status = status;
-            obj.lvl = lvl;
-            obj.type = type;
+            const nObj = mergeStrategy(obj, kanji);
+            obj.lvl = nObj.lvl;
+            obj.status = nObj.status;
+            obj.type = nObj.type;
         } else {
-            retArr.push({ kanji, lvl, status, type });
+            retArr.push(kanji);
         }
     }
     return retArr;
 };
+
+export const OVERRIDE_ALL: KanjiOverrideStrategy = (_, n) => n;
+export const MERGE_STATUSES: KanjiOverrideStrategy = (p, n) => ({
+    ...p,
+    status: n.status,
+});
+export const NO_OVERRIDE: KanjiOverrideStrategy = (p) => p;
 
 export const DEFAULT_KANJIS = () =>
     removeDuplicates(
         toKanji(l1Kanjis, { status: "new", type: "base", lvl: 1 }).concat(
             toKanji(l2Kanjis, { status: "new", type: "base", lvl: 2 })
         ),
-        true
+        OVERRIDE_ALL
     );

@@ -1,6 +1,12 @@
 import { useEffect } from "react";
 import { Kanji, KanjiStatus, KanjiType, useKanjiStore } from "./store";
-import { DEFAULT_KANJIS, removeDuplicates } from "./defaultKanjis";
+import {
+    DEFAULT_KANJIS,
+    MERGE_STATUSES,
+    NO_OVERRIDE,
+    OVERRIDE_ALL,
+    removeDuplicates,
+} from "./defaultKanjis";
 
 const getLocationKanjis = (search: string): Kanji[] => {
     const locKanjis = [] as Kanji[];
@@ -53,15 +59,26 @@ export const useKanjiStorage = () => {
     useEffect(() => {
         const locationKanjis = getLocationKanjis(location.search);
 
-        const force = location.search.includes("f=f");
+        const overrideType = (/t=(a|r|p|m)/i.exec(location.search)?.[1] ??
+            "x") as "a" | "r" | "p" | "m" | "x";
 
         history.replaceState("", "", "/#");
 
+        const strategies = {
+            a: NO_OVERRIDE,
+            r: OVERRIDE_ALL,
+            p: NO_OVERRIDE,
+            m: MERGE_STATUSES,
+            x: NO_OVERRIDE,
+        } as const;
+
         const LSkanjis = localStorage.getItem("kanjis");
         if (!LSkanjis) {
-            console.log("no previous state! Setting default!");
             mutateKanjis(() =>
-                removeDuplicates(DEFAULT_KANJIS().concat(locationKanjis), force)
+                removeDuplicates(
+                    DEFAULT_KANJIS().concat(locationKanjis),
+                    strategies[overrideType]
+                )
             );
         } else {
             // merge states
@@ -70,8 +87,11 @@ export const useKanjiStorage = () => {
                 if (Array.isArray(oldKanjis))
                     mutateKanjis(() =>
                         removeDuplicates(
-                            oldKanjis.concat(locationKanjis),
-                            force
+                            (overrideType === "r"
+                                ? DEFAULT_KANJIS()
+                                : oldKanjis
+                            ).concat(locationKanjis),
+                            strategies[overrideType]
                         )
                     );
             } catch (e) {
@@ -81,7 +101,7 @@ export const useKanjiStorage = () => {
                 mutateKanjis(() =>
                     removeDuplicates(
                         DEFAULT_KANJIS().concat(locationKanjis),
-                        force
+                        strategies[overrideType]
                     )
                 );
             }
