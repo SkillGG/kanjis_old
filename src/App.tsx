@@ -131,7 +131,12 @@ function App() {
         parseInt(localStorage.getItem("rowCount") ?? "0") || 10
     );
 
-    const [popup, setPopup] = useState<React.ReactNode | null>(null);
+    const [popup, setPopup] = useState<{
+        text: React.ReactNode;
+        time?: number;
+        borderColor?: string;
+        color?: string;
+    } | null>(null);
     const [popupOpen, setPopupOpen] = useState(false);
 
     useEffect(() => {
@@ -139,7 +144,7 @@ function App() {
         setPopupOpen(true);
         const oT = setTimeout(() => {
             setPopupOpen(false);
-        }, POPUP_SHOW_TIME);
+        }, popup.time ?? POPUP_SHOW_TIME);
         return () => {
             clearTimeout(oT);
         };
@@ -173,39 +178,50 @@ function App() {
                 {popup && (
                     <div
                         className="popup"
+                        style={{
+                            "--borderColor": popup.borderColor ?? "green",
+                            "--textColor": popup.color ?? "white",
+                        }}
                         data-open={popupOpen ? "open" : "closed"}
                     >
-                        <div>{popup}</div>
+                        <div>{popup.text}</div>
                     </div>
                 )}
                 <div
                     id="settings"
                     style={{
+                        flexWrap: "wrap",
                         display: "flex",
                         width: "100%",
                         justifyContent: "space-around",
                         marginBottom: "3px",
                     }}
                 >
-                    <div>
+                    <div
+                        className="setting-menu"
+                        style={{ flexDirection: "column" }}
+                    >
                         <div style={{ color: bgColors.learning }}>Learning</div>
                         <div style={{ color: bgColors.completed }}>
                             Completed
                         </div>
                     </div>
-                    <div>
+                    <div className="setting-menu">
                         <button
                             onClick={() => {
                                 navigator.clipboard.writeText(
                                     getShareLink(kanjis)
                                 );
-                                setPopup(
-                                    <div style={{ textAlign: "center" }}>
-                                        Copied to clipboard!
-                                        <br />
-                                        You can share it to your other devices!
-                                    </div>
-                                );
+                                setPopup({
+                                    text: (
+                                        <div style={{ textAlign: "center" }}>
+                                            Copied to clipboard!
+                                            <br />
+                                            You can share it to your other
+                                            devices!
+                                        </div>
+                                    ),
+                                });
                             }}
                         >
                             Get save link
@@ -354,7 +370,7 @@ function App() {
                             <br />
                         </dialog>
                     </div>
-                    <div>
+                    <div className="setting-menu">
                         <input
                             value={kanjisToSelect}
                             onChange={(e) => setKanjisToSelect(e.target.value)}
@@ -384,28 +400,46 @@ function App() {
                             Clear
                         </button>
                     </div>
-                    <div>
+                    <div className="setting-menu">
                         <button
                             onClick={() => {
                                 mutateKanjis(() => [...DEFAULT_KANJIS()]);
+                                setPopup({
+                                    text: <span>Reset successful!</span>,
+                                    borderColor: "red",
+                                });
                             }}
                         >
                             Reset to Default
                         </button>
                     </div>
-                    <div>
+                    <div
+                        className="setting-menu"
+                        style={{
+                            flexDirection: "column",
+                        }}
+                    >
                         Kanji per row:
-                        <button onClick={() => setRowCount((p) => p + 1)}>
-                            +
-                        </button>
-                        {rowCount}
-                        <button
-                            onClick={() =>
-                                setRowCount((p) => (p === 1 ? 1 : p - 1))
-                            }
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                flexDirection: "row",
+                                justifyContent: "center",
+                            }}
                         >
-                            -
-                        </button>
+                            <button onClick={() => setRowCount((p) => p + 1)}>
+                                +
+                            </button>
+                            {rowCount}
+                            <button
+                                onClick={() =>
+                                    setRowCount((p) => (p === 1 ? 1 : p - 1))
+                                }
+                            >
+                                -
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

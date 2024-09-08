@@ -57,15 +57,24 @@ button {
     top: -5%;
     left: 0;
     width: 100vw;
+    user-select: none;
+}
+
+.setting-menu {
+    display: flex;
+    justify-content: center;
+    margin-top: 5px;
+    min-height: 45px;
 }
 
 .popup > div {
     margin: 0 auto;
     width: fit-content;
+    color: var(--textColor);
     margin: 0 auto;
     left: 0;
     padding: 1em;
-    border: 1px solid green;
+    border: 1px solid var(--borderColor);
     border-radius: 0.5em;
 }
 
@@ -80,4 +89,12 @@ button {
 
 input {
     font-size: 2rem;
+}
+
+@media screen and (max-width: 800px) {
+    .setting-menu {
+        flex-wrap: wrap;
+        justify-content: center;
+        justify-items: center;
+    }
 }
