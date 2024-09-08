@@ -50,3 +50,34 @@ button {
     background-color: #dcd;
     color: black;
 }
+
+.popup {
+    position: absolute;
+    background-color: transparent;
+    top: -5%;
+    left: 0;
+    width: 100vw;
+}
+
+.popup > div {
+    margin: 0 auto;
+    width: fit-content;
+    margin: 0 auto;
+    left: 0;
+    padding: 1em;
+    border: 1px solid green;
+    border-radius: 0.5em;
+}
+
+.popup[data-open="open"] {
+    top: 2%;
+    transition-duration: 200ms;
+}
+
+.popup[data-open="closed"] {
+    transition-duration: 200ms;
+}
+
+input {
+    font-size: 2rem;
+}

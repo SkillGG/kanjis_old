@@ -17,6 +17,8 @@ const hoverColors = {
     completed: "#282",
 } as const;
 
+const POPUP_SHOW_TIME = 2000;
+
 const doesKanjiFitFilter = (f: string, k: Kanji) => {
     if (f.length <= 0) return true;
 
@@ -43,6 +45,78 @@ const doesKanjiFitFilter = (f: string, k: Kanji) => {
         return true;
 };
 
+const getShareLink = (kanjis: Kanji[]): string => {
+    let sharelink = `${location.protocol}//${location.host}/`;
+
+    const newK: Kanji[] = [];
+    const cplK: Kanji[] = [];
+    const lrnK: Kanji[] = [];
+
+    const addToLink = (k: Kanji) => {
+        if (k.status === "new") newK.push(k);
+        if (k.status === "learning") lrnK.push(k);
+        if (k.status === "completed") cplK.push(k);
+    };
+
+    for (const kanji of kanjis) {
+        const defaultK = DEFAULT_KANJIS().find((k) => k.kanji === kanji.kanji);
+        if (!defaultK) {
+            addToLink(kanji);
+        } else {
+            if (
+                defaultK.lvl !== kanji.lvl ||
+                defaultK.status !== kanji.status ||
+                defaultK.type !== kanji.type
+            )
+                addToLink(kanji);
+        }
+    }
+
+    const groupKanjis = (k: Kanji[]): string => {
+        let str = "";
+
+        const base = k.filter((f) => f.type === "base");
+        const extra = k.filter((f) => f.type === "extra");
+
+        const baseLvl = base.reduce((p, n) => {
+            if (n.lvl in p) {
+                p[n.lvl].push(n);
+                return p;
+            } else {
+                return { ...p, [n.lvl]: [n] };
+            }
+        }, {} as Record<number, Kanji[]>);
+
+        const extraLvl = extra.reduce((p, n) => {
+            if (n.lvl in p) {
+                p[n.lvl].push(n);
+                return p;
+            } else {
+                return { ...p, [n.lvl]: [n] };
+            }
+        }, {} as Record<number, Kanji[]>);
+
+        return `${Object.entries(baseLvl).reduce((prev, y) => {
+            return prev + `(${y[1].map((k) => k.kanji).join("")},${y[0]})`;
+        }, "")}${Object.entries(extraLvl).reduce((prev, y) => {
+            return prev + `[${y[1].map((k) => k.kanji).join("")},${y[0]}]`;
+        }, "")}`;
+    };
+
+    const newURL = new URL(sharelink);
+
+    const newSearchParams = groupKanjis(newK);
+    const cplSearchParams = groupKanjis(cplK);
+    const lrnSearchParams = groupKanjis(lrnK);
+
+    newURL.searchParams.set("n", newSearchParams);
+    newURL.searchParams.set("c", cplSearchParams);
+    newURL.searchParams.set("l", lrnSearchParams);
+    newURL.searchParams.set("f", "f");
+
+    return newURL.toString();
+};
+
 function App() {
     useKanjiStorage();
 
@@ -56,6 +130,31 @@ function App() {
     const [rowCount, setRowCount] = useState(
         parseInt(localStorage.getItem("rowCount") ?? "0") || 10
     );
+
+    const [popup, setPopup] = useState<React.ReactNode | null>(null);
+    const [popupOpen, setPopupOpen] = useState(false);
+
+    useEffect(() => {
+        if (popup === null) return;
+        setPopupOpen(true);
+        const oT = setTimeout(() => {
+            setPopupOpen(false);
+        }, POPUP_SHOW_TIME);
+        return () => {
+            clearTimeout(oT);
+        };
+    }, [popup]);
+
+    useEffect(() => {
+        if (!popupOpen) {
+            const cT = setTimeout(() => {
+                setPopup(null);
+            }, 200);
+            return () => {
+                clearTimeout(cT);
+            };
+        }
+    }, [popupOpen]);
 
     useEffect(() => {
         localStorage.setItem("rowCount", `${rowCount}`);
@@ -71,6 +170,14 @@ function App() {
                 <title>Kanji learning page</title>
             </Helmet>
             <div>
+                {popup && (
+                    <div
+                        className="popup"
+                        data-open={popupOpen ? "open" : "closed"}
+                    >
+                        <div>{popup}</div>
+                    </div>
+                )}
                 <div
                     id="settings"
                     style={{
@@ -87,6 +194,22 @@ function App() {
                         </div>
                     </div>
                     <div>
+                        <button
+                            onClick={() => {
+                                navigator.clipboard.writeText(
+                                    getShareLink(kanjis)
+                                );
+                                setPopup(
+                                    <div style={{ textAlign: "center" }}>
+                                        Copied to clipboard!
+                                        <br />
+                                        You can share it to your other devices!
+                                    </div>
+                                );
+                            }}
+                        >
+                            Get save link
+                        </button>
                         <button
                             onClick={() => {
                                 clearAddRef.current?.click();
@@ -246,6 +369,15 @@ function App() {
                         </button>
                         <button
                             onClick={() => {
+                                document
+                                    .querySelectorAll(".kanjiBtn")
+                                    .forEach((e) => (e as HTMLElement).click());
+                            }}
+                        >
+                            Click
+                        </button>
+                        <button
+                            onClick={() => {
                                 setFilter("");
                             }}
                         >
@@ -255,7 +387,7 @@ function App() {
                     <div>
                         <button
                             onClick={() => {
-                                mutateKanjis(() => DEFAULT_KANJIS);
+                                mutateKanjis(() => [...DEFAULT_KANJIS()]);
                             }}
                         >
                             Reset to Default
