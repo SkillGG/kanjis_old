@@ -235,7 +235,7 @@ function App() {
                         <input
                             value={kanjisToSelect}
                             onChange={(e) => setKanjisToSelect(e.target.value)}
-                            placeholder="e.g. 森円木気邪魔 or lvl1,base,extra"
+                            placeholder="森 or lvl1 base cpl"
                         />{" "}
                         <button
                             onClick={() => {
