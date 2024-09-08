@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 import "./App.css";
 import { useEffect, useRef, useState } from "react";
 import { useKanjiStorage } from "./kanjistorage";
-import { useKanjiStore } from "./store";
+import { Kanji, useKanjiStore } from "./store";
 import { DEFAULT_KANJIS } from "./defaultKanjis";
 
 const lvlColor = ["green", "blue", "orange", "red"];
@@ -17,6 +17,32 @@ const hoverColors = {
     completed: "#282",
 } as const;
 
+const doesKanjiFitFilter = (f: string, k: Kanji) => {
+    if (f.length <= 0) return true;
+
+    if (f.includes(k.kanji)) return true;
+
+    let lvlEx = f.matchAll(/lvl(\d+)/gi);
+    const lvlTab = [...lvlEx];
+    for (const [, lvlStr] of lvlTab) {
+        if (k.lvl === parseInt(lvlStr)) return true;
+    }
+
+    if (f.includes("base") && k.type === "base") return true;
+    if (f.includes("extra") && k.type === "extra") return true;
+    if (f.includes("new") && k.status === "new") return true;
+    if (
+        (f.includes("learning") || f.includes("lrn")) &&
+        k.status === "learning"
+    )
+        return true;
+    if (
+        (f.includes("completed") || f.includes("cpl")) &&
+        k.status === "completed"
+    )
+        return true;
+};
+
 function App() {
     useKanjiStorage();
 
@@ -24,6 +50,8 @@ function App() {
         useKanjiStore();
 
     const [kanjisToSelect, setKanjisToSelect] = useState("");
+
+    const [filter, setFilter] = useState("");
 
     const [rowCount, setRowCount] = useState(
         parseInt(localStorage.getItem("rowCount") ?? "0") || 10
@@ -207,24 +235,21 @@ function App() {
                         <input
                             value={kanjisToSelect}
                             onChange={(e) => setKanjisToSelect(e.target.value)}
-                            placeholder="e.g. 森"
+                            placeholder="e.g. 森円木気邪魔 or lvl1,base,extra"
                         />{" "}
                         <button
                             onClick={() => {
-                                for (const kj of kanjisToSelect) {
-                                    try {
-                                        document
-                                            .querySelector<HTMLButtonElement>(
-                                                `#${kj}`
-                                            )
-                                            ?.click();
-                                    } catch (e) {
-                                        continue;
-                                    }
-                                }
+                                setFilter(kanjisToSelect);
                             }}
                         >
-                            Click
+                            Filter
+                        </button>
+                        <button
+                            onClick={() => {
+                                setFilter("");
+                            }}
+                        >
+                            Clear
                         </button>
                     </div>
                     <div>
@@ -262,44 +287,54 @@ function App() {
                     width: "fit-content",
                 }}
             >
-                {kanjis.map(({ kanji, status, type, lvl }) => {
-                    return (
-                        <button
-                            onContextMenu={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                removeKanji(kanji);
-                            }}
-                            onClick={() => {
-                                console.log("changing value for kanji");
-                                updateKanji(kanji, {
-                                    status:
-                                        status === "new"
-                                            ? "learning"
-                                            : status === "learning"
-                                            ? "completed"
-                                            : "new",
-                                });
-                            }}
-                            key={kanji}
-                            id={kanji}
-                            className="kanjiBtn"
-                            style={{
-                                "--hoverColor": hoverColors[status],
-
-                                "--bgColor": bgColors[status],
-                                fontSize: "2em",
-                                textDecoration:
-                                    type == "base" ? "none" : "underline",
-                                border: `2px solid ${lvlColor[lvl - 1]}`,
-                                padding: "0.4em",
-                            }}
-                            title={`${type} kanji lvl ${lvl}`}
-                        >
-                            {kanji}
-                        </button>
-                    );
-                })}
+                {kanjis
+                    .filter(
+                        (f) =>
+                            filter.includes(f.kanji) ||
+                            doesKanjiFitFilter(filter, f)
+                    )
+                    .map(({ kanji, status, type, lvl }) => {
+                        return (
+                            <button
+                                onContextMenu={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    removeKanji(kanji);
+                                }}
+                                onClick={(e) => {
+                                    (e.target as HTMLElement)?.blur();
+                                    console.log("changing value for kanji");
+                                    updateKanji(kanji, {
+                                        status:
+                                            status === "new"
+                                                ? "learning"
+                                                : status === "learning"
+                                                ? "completed"
+                                                : "new",
+                                    });
+                                }}
+                                key={kanji}
+                                id={kanji}
+                                className="kanjiBtn"
+                                style={{
+                                    "--hoverColor": hoverColors[status],
+                                    "--bgColor": bgColors[status],
+                                    fontSize: "2em",
+                                    textDecoration:
+                                        type == "base" ? "none" : "underline",
+                                    border: `2px solid ${
+                                        lvl <= lvlColor.length
+                                            ? lvlColor[lvl - 1]
+                                            : lvlColor[lvlColor.length - 1]
+                                    }`,
+                                    padding: "0.4em",
+                                }}
+                                title={`${type} kanji lvl ${lvl}`}
+                            >
+                                {kanji}
+                            </button>
+                        );
+                    })}
             </div>
         </>
     );
