@@ -62,7 +62,7 @@ export const useKanjiStorage = () => {
         const overrideType = (/t=(a|r|p|m)/i.exec(location.search)?.[1] ??
             "x") as "a" | "r" | "p" | "m" | "x";
 
-        history.replaceState("", "", "/#");
+        if (overrideType != "p") history.replaceState("", "", "/#");
 
         const strategies = {
             a: NO_OVERRIDE,
