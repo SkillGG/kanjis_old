@@ -1,6 +1,10 @@
 import { useEffect } from "react";
+
+import { gt, lt, valid } from "semver";
+
 import { Kanji, KanjiStatus, KanjiType, useKanjiStore } from "./store";
 import {
+    DEFAULT_KANJI_VERSION,
     DEFAULT_KANJIS,
     MERGE_STATUSES,
     NO_OVERRIDE,
@@ -53,8 +57,13 @@ const getLocationKanjis = (search: string): Kanji[] => {
     return locKanjis;
 };
 
+export const LS_KEYS = {
+    kanjis: "kanjis",
+    kanji_ver: "default_kanji_version",
+} as const;
+
 export const useKanjiStorage = () => {
-    const { mutateKanjis } = useKanjiStore();
+    const { mutateKanjis, setShouldUpdate } = useKanjiStore();
 
     useEffect(() => {
         const locationKanjis = getLocationKanjis(location.search);
@@ -72,38 +81,60 @@ export const useKanjiStorage = () => {
             x: NO_OVERRIDE,
         } as const;
 
-        const LSkanjis = localStorage.getItem("kanjis");
+        const LSkanjis = localStorage.getItem(LS_KEYS.kanjis);
+
+        const lastVersion = localStorage.getItem(LS_KEYS.kanji_ver);
+
+        console.log(valid(lastVersion));
+
+        if (!lastVersion || !valid(lastVersion)) {
+            setShouldUpdate(true);
+        } else {
+            if (gt(DEFAULT_KANJI_VERSION, lastVersion)) {
+                setShouldUpdate(true);
+            }
+        }
+
         if (!LSkanjis) {
-            mutateKanjis(() =>
-                removeDuplicates(
+            mutateKanjis(() => {
+                localStorage.setItem(LS_KEYS.kanji_ver, DEFAULT_KANJI_VERSION);
+                return removeDuplicates(
                     DEFAULT_KANJIS().concat(locationKanjis),
                     strategies[overrideType]
-                )
-            );
+                );
+            });
         } else {
             // merge states
             try {
                 const oldKanjis = JSON.parse(LSkanjis);
                 if (Array.isArray(oldKanjis))
-                    mutateKanjis(() =>
-                        removeDuplicates(
+                    mutateKanjis(() => {
+                        localStorage.setItem(
+                            LS_KEYS.kanji_ver,
+                            DEFAULT_KANJI_VERSION
+                        );
+                        return removeDuplicates(
                             (overrideType === "r"
                                 ? DEFAULT_KANJIS()
                                 : oldKanjis
                             ).concat(locationKanjis),
                             strategies[overrideType]
-                        )
-                    );
+                        );
+                    });
             } catch (e) {
                 alert(
                     "There was an issue getting your previous data! Resetting!"
                 );
-                mutateKanjis(() =>
-                    removeDuplicates(
+                mutateKanjis(() => {
+                    localStorage.setItem(
+                        LS_KEYS.kanji_ver,
+                        DEFAULT_KANJI_VERSION
+                    );
+                    return removeDuplicates(
                         DEFAULT_KANJIS().concat(locationKanjis),
                         strategies[overrideType]
-                    )
-                );
+                    );
+                });
             }
         }
     }, []);

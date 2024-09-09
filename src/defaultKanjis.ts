@@ -1,5 +1,7 @@
 import { Kanji } from "./store";
 
+export const DEFAULT_KANJI_VERSION = "0.1.0";
+
 const l1Kanjis = `
 日月木山川田人口車門
 火水金土子女学先生私

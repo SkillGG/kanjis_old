@@ -135,8 +135,14 @@ const getShareLink = (
 function App() {
     useKanjiStorage();
 
-    const { kanjis, mutateKanjis, updateKanji, addKanji, removeKanji } =
-        useKanjiStore();
+    const {
+        kanjis,
+        mutateKanjis,
+        updateKanji,
+        addKanji,
+        removeKanji,
+        shouldUpdate,
+    } = useKanjiStore();
 
     const [kanjisToSelect, setKanjisToSelect] = useState("");
 
@@ -200,6 +206,32 @@ function App() {
                         data-open={popupOpen ? "open" : "closed"}
                     >
                         <div>{popup.text}</div>
+                    </div>
+                )}
+                {shouldUpdate && (
+                    <div
+                        className="popup"
+                        style={{
+                            "--borderColor": "red",
+                            "--textColor": "white",
+                        }}
+                        data-open={"open"}
+                    >
+                        <div>
+                            There was an breaking update to the default kanji
+                            list! Click{" "}
+                            <button
+                                onClick={() => {
+                                    window.location.href = getShareLink(
+                                        kanjis,
+                                        "reset"
+                                    );
+                                }}
+                            >
+                                here
+                            </button>{" "}
+                            to update your list!
+                        </div>
                     </div>
                 )}
                 <div
