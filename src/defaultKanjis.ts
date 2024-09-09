@@ -1,6 +1,6 @@
 import { Kanji } from "./store";
 
-export const DEFAULT_KANJI_VERSION = "0.1.0";
+export const DEFAULT_KANJI_VERSION = "0.1.1";
 
 const l1Kanjis = `
 日月木山川田人口車門

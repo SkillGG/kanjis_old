@@ -194,7 +194,7 @@ function App() {
         <>
             <Helmet>
                 <meta charSet="utf-8" />
-                <title>Kanji learning page</title>
+                <title>Kanji progress tracking app</title>
             </Helmet>
             <div>
                 {popup && (
@@ -234,10 +234,8 @@ function App() {
                                     localStorage.removeItem(
                                         LS_KEYS.omit_version
                                     );
-                                    window.location.href = getShareLink(
-                                        kanjis,
-                                        "reset"
-                                    );
+                                    localStorage.removeItem(LS_KEYS.kanjis);
+                                    window.location.href = getShareLink(kanjis);
                                 }}
                             >
                                 Update
