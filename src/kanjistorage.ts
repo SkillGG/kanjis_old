@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { gt, lt, valid } from "semver";
+import { eq, gt, lt, valid } from "semver";
 
 import { Kanji, KanjiStatus, KanjiType, useKanjiStore } from "./store";
 import {
@@ -60,6 +60,7 @@ const getLocationKanjis = (search: string): Kanji[] => {
 export const LS_KEYS = {
     kanjis: "kanjis",
     kanji_ver: "default_kanji_version",
+    omit_version: "omit_kanji_version",
 } as const;
 
 export const useKanjiStorage = () => {
@@ -85,15 +86,24 @@ export const useKanjiStorage = () => {
 
         const lastVersion = localStorage.getItem(LS_KEYS.kanji_ver);
 
-        console.log(valid(lastVersion));
+        const omitVersion = localStorage.getItem(LS_KEYS.omit_version);
+
+        let shouldUpdate = false;
 
         if (!lastVersion || !valid(lastVersion)) {
-            setShouldUpdate(true);
+            shouldUpdate = true;
         } else {
             if (gt(DEFAULT_KANJI_VERSION, lastVersion)) {
-                setShouldUpdate(true);
+                shouldUpdate = true;
             }
         }
+
+        if (
+            !omitVersion ||
+            !valid(omitVersion) ||
+            !eq(DEFAULT_KANJI_VERSION, omitVersion)
+        )
+            setShouldUpdate(shouldUpdate);
 
         if (!LSkanjis) {
             mutateKanjis(() => {
@@ -109,10 +119,11 @@ export const useKanjiStorage = () => {
                 const oldKanjis = JSON.parse(LSkanjis);
                 if (Array.isArray(oldKanjis))
                     mutateKanjis(() => {
-                        localStorage.setItem(
-                            LS_KEYS.kanji_ver,
-                            DEFAULT_KANJI_VERSION
-                        );
+                        if (overrideType === "r")
+                            localStorage.setItem(
+                                LS_KEYS.kanji_ver,
+                                DEFAULT_KANJI_VERSION
+                            );
                         return removeDuplicates(
                             (overrideType === "r"
                                 ? DEFAULT_KANJIS()

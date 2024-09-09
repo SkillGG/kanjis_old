@@ -1,9 +1,9 @@
 import { Helmet } from "react-helmet-async";
 import "./App.css";
 import { useEffect, useRef, useState } from "react";
-import { useKanjiStorage } from "./kanjistorage";
+import { LS_KEYS, useKanjiStorage } from "./kanjistorage";
 import { Kanji, useKanjiStore } from "./store";
-import { DEFAULT_KANJIS } from "./defaultKanjis";
+import { DEFAULT_KANJI_VERSION, DEFAULT_KANJIS } from "./defaultKanjis";
 
 const lvlColor = ["green", "blue", "orange", "red"];
 const bgColors = {
@@ -142,6 +142,7 @@ function App() {
         addKanji,
         removeKanji,
         shouldUpdate,
+        setShouldUpdate,
     } = useKanjiStore();
 
     const [kanjisToSelect, setKanjisToSelect] = useState("");
@@ -212,25 +213,55 @@ function App() {
                     <div
                         className="popup"
                         style={{
+                            zIndex: "10",
                             "--borderColor": "red",
                             "--textColor": "white",
+                            fontSize: "1.3rem",
+                            textAlign: "center",
                         }}
                         data-open={"open"}
                     >
                         <div>
-                            There was an breaking update to the default kanji
-                            list! Click{" "}
+                            There was an update to the kanji list!
+                            <br />(
+                            {localStorage.getItem(LS_KEYS.kanji_ver) ??
+                                "0.0.1"}{" "}
+                            =&gt; {DEFAULT_KANJI_VERSION})
+                            <br />
                             <button
+                                className="updateBTN"
                                 onClick={() => {
+                                    localStorage.removeItem(
+                                        LS_KEYS.omit_version
+                                    );
                                     window.location.href = getShareLink(
                                         kanjis,
                                         "reset"
                                     );
                                 }}
                             >
-                                here
-                            </button>{" "}
-                            to update your list!
+                                Update
+                            </button>
+                            <button
+                                className="updateBTN"
+                                onClick={() => {
+                                    setShouldUpdate(false);
+                                }}
+                            >
+                                Dismiss
+                            </button>
+                            <button
+                                className="updateBTN"
+                                onClick={() => {
+                                    localStorage.setItem(
+                                        LS_KEYS.omit_version,
+                                        DEFAULT_KANJI_VERSION
+                                    );
+                                    setShouldUpdate(false);
+                                }}
+                            >
+                                Don't ask anymore
+                            </button>
                         </div>
                     </div>
                 )}

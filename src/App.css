@@ -52,7 +52,7 @@ button {
 }
 
 .popup {
-    position: absolute;
+    position: fixed;
     background-color: transparent;
     top: -5%;
     left: 0;
@@ -97,4 +97,19 @@ input {
         justify-content: center;
         justify-items: center;
     }
+}
+
+.updateBTN {
+    border: none;
+    padding: none;
+    margin: none;
+    display: inline-block;
+    text-decoration: underline wavy pink;
+    color: aqua;
+    cursor: pointer;
+}
+
+.updateBTN:hover {
+    text-decoration: underline wavy red;
+    color: blue;
 }
