@@ -235,7 +235,10 @@ function App() {
                                         LS_KEYS.omit_version
                                     );
                                     localStorage.removeItem(LS_KEYS.kanjis);
-                                    window.location.href = getShareLink(kanjis);
+                                    setTimeout(() => {
+                                        window.location.href =
+                                            getShareLink(kanjis);
+                                    }, 50);
                                 }}
                             >
                                 Update
@@ -545,11 +548,6 @@ function App() {
                     .map(({ kanji, status, type, lvl }) => {
                         return (
                             <button
-                                onContextMenu={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    removeKanji(kanji);
-                                }}
                                 onClick={(e) => {
                                     (e.target as HTMLElement)?.blur();
                                     updateKanji(kanji, {
@@ -564,17 +562,16 @@ function App() {
                                 key={kanji}
                                 id={kanji}
                                 className="kanjiBtn"
+                                data-type={type}
                                 style={{
                                     "--hoverColor": hoverColors[status],
                                     "--bgColor": bgColors[status],
-                                    fontSize: "2em",
-                                    textDecoration:
-                                        type == "base" ? "none" : "underline",
-                                    border: `2px solid ${
+                                    "--border": `2px solid ${
                                         lvl <= lvlColor.length
                                             ? lvlColor[lvl - 1]
                                             : lvlColor[lvlColor.length - 1]
                                     }`,
+                                    fontSize: "2em",
                                     padding: "0.4em",
                                 }}
                                 title={`${type} kanji lvl ${lvl}`}

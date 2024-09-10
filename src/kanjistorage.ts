@@ -106,6 +106,7 @@ export const useKanjiStorage = () => {
             setShouldUpdate(shouldUpdate);
 
         if (!LSkanjis) {
+            setShouldUpdate(false);
             mutateKanjis(() => {
                 localStorage.setItem(LS_KEYS.kanji_ver, DEFAULT_KANJI_VERSION);
                 return removeDuplicates(
@@ -119,11 +120,13 @@ export const useKanjiStorage = () => {
                 const oldKanjis = JSON.parse(LSkanjis);
                 if (Array.isArray(oldKanjis))
                     mutateKanjis(() => {
-                        if (overrideType === "r")
+                        if (overrideType === "r") {
+                            setShouldUpdate(false);
                             localStorage.setItem(
                                 LS_KEYS.kanji_ver,
                                 DEFAULT_KANJI_VERSION
                             );
+                        }
                         return removeDuplicates(
                             (overrideType === "r"
                                 ? DEFAULT_KANJIS()
@@ -137,6 +140,7 @@ export const useKanjiStorage = () => {
                     "There was an issue getting your previous data! Resetting!"
                 );
                 mutateKanjis(() => {
+                    setShouldUpdate(false);
                     localStorage.setItem(
                         LS_KEYS.kanji_ver,
                         DEFAULT_KANJI_VERSION

@@ -1,8 +1,12 @@
 import { Kanji } from "./store";
 
-export const DEFAULT_KANJI_VERSION = "0.1.1";
+export const DEFAULT_KANJI_VERSION = "0.2.0";
 
-const l1Kanjis = `
+const dedupe = (s: string) => {
+    return [...new Set(s)].join("");
+};
+
+const l1Kanji = dedupe(`
 日月木山川田人口車門
 火水金土子女学先生私
 一二三四五六七八九十百千万円年
@@ -25,8 +29,24 @@ const l1Kanjis = `
 市町村区都府県島京様
 練習勉強研究留質問題答宿
 政治経済歴史育化理数科医
-`;
-const l2Kanjis = `
+`);
+
+const l1Extras = dedupe(
+    `
+富士自動専門電車筑波
+利根彼葉歳去実改札峠
+鱈鰯体育週語次鼻科天
+紙化助鈴佐藤渡辺高橋
+井上加藤伊藤喫茶店紅
+茶省漢乳焼美温詞形容
+意晩御飯様法絵洋招反
+欠交舌英和辞典茨城告
+難` // TODO go lesson 14+
+);
+
+const l2Extras = dedupe(``);
+
+const l2Kanji = dedupe(`
 映画写真音楽料組思色白黒赤
 起寝遊立座使始終貸借返送
 結婚離欠席予定洋式和活
@@ -49,12 +69,12 @@ const l2Kanjis = `
 卒論実調必要類得失礼
 増加減変移続過進以美
 比反対賛共直表現初
-全最無非第的性法律制課`;
+全最無非第的性法律制課`);
 
 const toKanji = (s: string, d: Omit<Kanji, "kanji">) => {
     return [...new Set(s)]
         .filter((f) => f !== "\n")
-        .map<Kanji>((v) => ({ ...d, kanji: v }));
+        .map<Kanji>((kanji) => ({ ...d, kanji }));
 };
 
 type KanjiOverrideStrategy = (p: Kanji, n: Kanji) => Kanji;
@@ -85,10 +105,38 @@ export const MERGE_STATUSES: KanjiOverrideStrategy = (p, n) => ({
 });
 export const NO_OVERRIDE: KanjiOverrideStrategy = (p) => p;
 
+const l1Base = toKanji(l1Kanji, { status: "new", type: "base", lvl: 1 });
+const l1Extra = toKanji(l1Extras, { status: "new", type: "extra", lvl: 1 });
+const l2Base = toKanji(l2Kanji, { status: "new", type: "base", lvl: 2 });
+const l2Extra = toKanji(l2Extras, { status: "new", type: "extra", lvl: 2 });
+
 export const DEFAULT_KANJIS = () =>
     removeDuplicates(
-        toKanji(l1Kanjis, { status: "new", type: "base", lvl: 1 }).concat(
-            toKanji(l2Kanjis, { status: "new", type: "base", lvl: 2 })
-        ),
-        OVERRIDE_ALL
-    );
+        l1Base.concat(l2Base).concat(l1Extra.concat(l2Extra)),
+        NO_OVERRIDE
+    ).sort((p, n) => p.lvl - n.lvl); // prioritize bases over extras
+
+console.log(
+    "lv1,base: ",
+    DEFAULT_KANJIS()
+        .filter((f) => f.type == "base" && f.lvl === 1)
+        .map((k) => k.kanji)
+);
+console.log(
+    "lv1,extra: ",
+    DEFAULT_KANJIS()
+        .filter((f) => f.type == "extra" && f.lvl === 1)
+        .map((k) => k.kanji)
+);
+console.log(
+    "lv2,base: ",
+    DEFAULT_KANJIS()
+        .filter((f) => f.type == "base" && f.lvl === 2)
+        .map((k) => k.kanji)
+);
+console.log(
+    "lv2,extra: ",
+    DEFAULT_KANJIS()
+        .filter((f) => f.type == "extra" && f.lvl === 2)
+        .map((k) => k.kanji)
+);

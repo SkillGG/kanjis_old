@@ -23,6 +23,7 @@ input::placeholder {
     background-color: var(--bgColor);
     cursor: pointer;
     width: 100%;
+    border: var(--border);
 }
 
 .kanjiBtn:hover {
@@ -112,4 +113,16 @@ input {
 .updateBTN:hover {
     text-decoration: underline wavy red;
     color: blue;
+}
+
+.kanjiBtn[data-type="extra"] {
+    position: relative;
+}
+
+.kanjiBtn[data-type="extra"]::after {
+    position: absolute;
+    top: -5px;
+    right: 0;
+    content: "*";
+    color: red;
 }
