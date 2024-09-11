@@ -461,6 +461,13 @@ function App() {
                             value={kanjisToSelect}
                             onChange={(e) => setKanjisToSelect(e.target.value)}
                             placeholder="森 or lvl1 base cpl"
+                            onKeyDown={(e) => {
+                                console.log(e);
+                                if (e.code === "Enter") {
+                                    console.log("Pressed enter");
+                                    setFilter(kanjisToSelect);
+                                }
+                            }}
                         />{" "}
                         <button
                             onClick={() => {

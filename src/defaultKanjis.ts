@@ -1,6 +1,6 @@
 import { Kanji } from "./store";
 
-export const DEFAULT_KANJI_VERSION = "0.2.0";
+export const DEFAULT_KANJI_VERSION = "0.2.2";
 
 const dedupe = (s: string) => {
     return [...new Set(s)].join("");
@@ -41,7 +41,10 @@ const l1Extras = dedupe(
 茶省漢乳焼美温詞形容
 意晩御飯様法絵洋招反
 欠交舌英和辞典茨城告
-難` // TODO go lesson 14+
+難首形声達刻信号続快
+仙横浜州関係祖伯叔課
+情適当容航郵鼻符婦眼
+器泌尿整殿包錠移到労` // TODO go lesson 14+
 );
 
 const l2Extras = dedupe(``);
